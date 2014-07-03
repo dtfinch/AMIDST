@@ -43,23 +43,23 @@ public class AmidstMenu extends JMenuBar {
 	public final JMenu mapMenu; //TODO: protected
 	final JMenu optionsMenu;
 	final JMenu helpMenu;
-	
+
 	private final FinderWindow window;
-	
+
 	public AmidstMenu(FinderWindow window) {
 		this.window = window;
-		
+
 		fileMenu = add(new FileMenu());
 		mapMenu = add(new MapMenu());
 		optionsMenu = add(new OptionsMenu());
 		helpMenu = add(new HelpMenu());
 	}
-	
+
 	private class FileMenu extends JMenu {
 		private FileMenu() {
 			super("File");
 			setMnemonic(KeyEvent.VK_F);
-			
+
 			add(new JMenu("New") {{
 				setMnemonic(KeyEvent.VK_N);
 				add(new SeedMenuItem());
@@ -67,7 +67,7 @@ public class AmidstMenu extends JMenuBar {
 				add(new RandomSeedMenuItem());
 				//add(new JMenuItem("From Server"));
 			}});
-			
+
 			add(new JMenuItem("Save player locations") {{
 				setEnabled(MinecraftUtil.getVersion().saveEnabled());
 				setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
@@ -85,7 +85,7 @@ public class AmidstMenu extends JMenuBar {
 					}
 				});
 			}});
-			
+
 			add(new JMenuItem("Exit") {{
 				addActionListener(new ActionListener() {
 					@Override
@@ -99,7 +99,7 @@ public class AmidstMenu extends JMenuBar {
 			final String blankText = "A random seed will be generated if left blank.";
 			final String leadingSpaceText = "Warning: There is a space at the start!";
 			final String trailingSpaceText = "Warning: There is a space at the end!";
-			
+
 			final JTextField inputText = new JTextField();
 
 			inputText.addAncestorListener( new AncestorListener() {
@@ -116,7 +116,7 @@ public class AmidstMenu extends JMenuBar {
 					inputText.requestFocus();
 				}
 			});
-			
+
 			final JLabel inputInformation = new JLabel(blankText);
 			inputInformation.setForeground(Color.red);
 			inputInformation.setFont(new Font("arial", Font.BOLD, 10));
@@ -156,7 +156,7 @@ public class AmidstMenu extends JMenuBar {
 					}
 				}
 			});
-			
+
 			final JComponent[] inputs = new JComponent[] {
 					new JLabel("Enter your seed: "),
 					inputInformation,
@@ -165,7 +165,7 @@ public class AmidstMenu extends JMenuBar {
 			int result = JOptionPane.showConfirmDialog(window, inputs, title, JOptionPane.OK_CANCEL_OPTION);
 			return (result == 0)?inputText.getText():null;
 		}
-		
+
 		private class SeedMenuItem extends JMenuItem {
 			private SeedMenuItem() {
 				super("From seed");
@@ -182,7 +182,7 @@ public class AmidstMenu extends JMenuBar {
 							} else {
 								worldType = SaveLoader.Type.fromMixedCase(worldTypePreference);
 							}
-							
+
 							if (seed.equals(""))
 								seed = "" + (new Random()).nextLong();
 							if (worldType != null) {
@@ -194,7 +194,7 @@ public class AmidstMenu extends JMenuBar {
 				});
 			}
 		}
-		
+
 		private class RandomSeedMenuItem extends JMenuItem {
 			private RandomSeedMenuItem() {
 				super("From random seed");
@@ -212,18 +212,18 @@ public class AmidstMenu extends JMenuBar {
 							} else {
 								worldType = SaveLoader.Type.fromMixedCase(worldTypePreference);
 							}
-							
+
 							//If a string was returned, say so.
 							if (worldType != null) {
 								window.clearProject();
 								window.setProject(new Project(seed, worldType.getValue()));
 							}
 						}
-					
+
 				});
 			}
 		}
-		
+
 		private class FileMenuItem extends JMenuItem {
 			private FileMenuItem() {
 				super("From file or folder");
@@ -247,7 +247,7 @@ public class AmidstMenu extends JMenuBar {
 						fc.setFileHidingEnabled(false);
 						if (fc.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
 							File f = fc.getSelectedFile();
-							
+
 							SaveLoader s = null;
 							if (f.isDirectory())
 								s = new SaveLoader(new File(f.getAbsoluteFile() + "/level.dat"));
@@ -280,9 +280,9 @@ public class AmidstMenu extends JMenuBar {
 			add(new LayersMenu());
 			add(new CopySeedMenuItem());
 			add(new CaptureMenuItem());
-		
+
 		}
-		
+
 		private class FindMenu extends JMenu {
 			private FindMenu() {
 				super("Find");
@@ -299,7 +299,7 @@ public class AmidstMenu extends JMenuBar {
 				}});
 			}
 		}
-		
+
 		private class GoToMenu extends JMenu {
 			private GoToMenu() {
 				super("Go to");
@@ -322,7 +322,7 @@ public class AmidstMenu extends JMenuBar {
 						}
 					});
 				}});
-				
+
 				add(new JMenuItem("Player") {{
 					addActionListener(new ActionListener() {
 						@Override
@@ -342,7 +342,7 @@ public class AmidstMenu extends JMenuBar {
 				//add(new JMenuItem("Chunk"));
 			}
 		}
-		
+
 		private class LayersMenu extends JMenu {
 			private LayersMenu() {
 				super("Layers");
@@ -351,52 +351,57 @@ public class AmidstMenu extends JMenuBar {
 					ResourceLoader.getImage("grid.png"),
 					KeyEvent.VK_1,
 					Options.instance.showGrid));
-				
+
 				add(new DisplayingCheckbox("Slime chunks",
 					ResourceLoader.getImage("slime.png"),
 					KeyEvent.VK_2,
 					Options.instance.showSlimeChunks));
-				
+
 				add(new DisplayingCheckbox("Village Icons",
 					ResourceLoader.getImage("village.png"),
 					KeyEvent.VK_3,
 					Options.instance.showVillages));
-				
+
 				add(new DisplayingCheckbox("Temple/Witch Hut Icons",
 					ResourceLoader.getImage("desert.png"),
 					KeyEvent.VK_4,
 					Options.instance.showTemples));
-				
+
 				add(new DisplayingCheckbox("Stronghold Icons",
 					ResourceLoader.getImage("stronghold.png"),
 					KeyEvent.VK_5,
 					Options.instance.showStrongholds));
-				
+
 				add(new DisplayingCheckbox("Player Icons",
 					ResourceLoader.getImage("player.png"),
 					KeyEvent.VK_6,
 					Options.instance.showPlayers));
-				
+
 				add(new DisplayingCheckbox("Nether Fortress Icons",
 					ResourceLoader.getImage("nether_fortress.png"),
 					KeyEvent.VK_7,
 					Options.instance.showNetherFortresses));
-				
+
+				add(new DisplayingCheckbox("Mineshaft Icons",
+					ResourceLoader.getImage("mineshaft.png"),
+					KeyEvent.VK_8,
+					Options.instance.showMineshafts));
+
 				add(new DisplayingCheckbox("Spawn Location Icon",
 						ResourceLoader.getImage("spawn.png"),
-						KeyEvent.VK_8,
+						KeyEvent.VK_9,
 						Options.instance.showSpawn));
-				
+
 			}
-			
+
 
 		}
 		private class CaptureMenuItem extends JMenuItem {
 			private CaptureMenuItem() {
 				super("Capture");
-				
+
 				setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK));
-				
+
 				addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -404,7 +409,7 @@ public class AmidstMenu extends JMenuBar {
 						fc.setFileFilter(new PNGFileFilter());
 						fc.setAcceptAllFileFilterUsed(false);
 						int returnVal = fc.showSaveDialog(window);
-						
+
 						if (returnVal == JFileChooser.APPROVE_OPTION) {
 							String s = fc.getSelectedFile().toString();
 							if (!s.toLowerCase().endsWith(".png"))
@@ -418,9 +423,9 @@ public class AmidstMenu extends JMenuBar {
 		private class CopySeedMenuItem extends JMenuItem {
 			private CopySeedMenuItem() {
 				super("Copy Seed to Clipboard");
-				
+
 				setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK));
-				
+
 				addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -430,7 +435,7 @@ public class AmidstMenu extends JMenuBar {
 							@Override
 							public void lostOwnership(Clipboard arg0, Transferable arg1) {
 								// TODO Auto-generated method stub
-								
+
 							}
 						});
 					}
@@ -438,7 +443,7 @@ public class AmidstMenu extends JMenuBar {
 			}
 		}
 	}
-	
+
 	private class OptionsMenu extends JMenu {
 		private OptionsMenu() {
 			super("Options");
@@ -490,7 +495,7 @@ public class AmidstMenu extends JMenuBar {
 				profileCheckboxes.get(0).setSelected(true);
 				add(reloadMenuItem);
 			}
-			
+
 			private boolean scanAndLoad(File folder, JMenu menu) {
 				File[] files = folder.listFiles();
 				BiomeColorProfile profile;
@@ -520,7 +525,7 @@ public class AmidstMenu extends JMenuBar {
 				}
 				return foundProfiles;
 			}
-			
+
 		}
 		private class MapOptionsMenu extends JMenu {
 			private MapOptionsMenu() {
@@ -530,35 +535,35 @@ public class AmidstMenu extends JMenuBar {
 						null,
 						KeyEvent.VK_I,
 						Options.instance.mapFlicking));
-				
+
 				add(new DisplayingCheckbox("Restrict Maximum Zoom",
 						null,
 						KeyEvent.VK_Z,
 						Options.instance.maxZoom));
-				
+
 				add(new DisplayingCheckbox("Show Framerate",
 						null,
 						KeyEvent.VK_L,
 						Options.instance.showFPS));
-				
+
 				add(new DisplayingCheckbox("Use Fragment Fading",
 						null,
 						-1,
 						Options.instance.mapFading));
-				
+
 				add(new DisplayingCheckbox("Show Debug Info",
 						null,
 						-1,
 						Options.instance.showDebug));
 			}
-			
+
 		}
 		private class WorldTypeMenu extends JMenu {
 			private WorldTypeMenu() {
 				super("World type");
 
 				SelectButtonModel[] buttonModels = Options.instance.worldType.getButtonModels();
-				
+
 				for (int i = 0; i < buttonModels.length; i++) {
 					add(new DisplayingCheckbox(buttonModels[i].getName(),
 							null,
@@ -566,14 +571,14 @@ public class AmidstMenu extends JMenuBar {
 							buttonModels[i]));
 				}
 			}
-			
+
 		}
 	}
-	
+
 	private class HelpMenu extends JMenu {
 		private HelpMenu() {
 			super("Help");
-			
+
 			add(new JMenuItem("Check for updates") {{
 				addActionListener(new ActionListener() {
 					@Override
@@ -591,7 +596,7 @@ public class AmidstMenu extends JMenuBar {
 					}
 				});
 			}});
-			
+
 			add(new JMenuItem("About") {{
 				addActionListener(new ActionListener() {
 					@Override
@@ -602,12 +607,12 @@ public class AmidstMenu extends JMenuBar {
 					}
 				});
 			}});
-			
+
 		}
 	}
-	
+
 	/** Allows the user to choose one of several things.
-	 * 
+	 *
 	 * Convenience wrapper around JOptionPane.showInputDialog
 	 */
 	private <T> T choose(String title, String message, T[] choices) {
@@ -620,7 +625,7 @@ public class AmidstMenu extends JMenuBar {
 			choices,
 			choices[0]);
 	}
-	
+
 	/** Lets the user decide one of the given points and go to it
 	 * @param points Given points to choose from
 	 * @param name name displayed in the choice

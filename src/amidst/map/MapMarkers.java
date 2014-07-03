@@ -17,10 +17,11 @@ public enum MapMarkers {
 	DESERT,
 	VILLAGE,
 	SPAWN,
-	WITCH;
-	
+	WITCH,
+	MINESHAFT;
+
 	public final BufferedImage image;
-	
+
 	private MapMarkers() {
 		String fileName = this.toString().toLowerCase() + ".png";
 		image = ResourceLoader.getImage(fileName);

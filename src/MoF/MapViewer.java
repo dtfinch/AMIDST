@@ -13,6 +13,7 @@ import amidst.map.MapObject;
 import amidst.map.MapObjectPlayer;
 import amidst.map.layers.BiomeLayer;
 import amidst.map.layers.GridLayer;
+import amidst.map.layers.MineshaftLayer;
 import amidst.map.layers.NetherFortressLayer;
 import amidst.map.layers.PlayerLayer;
 import amidst.map.layers.SlimeLayer;
@@ -62,7 +63,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 	// TODO: This should likely be moved somewhere else.
 	private static FragmentManager fragmentManager;
 	private static PlayerLayer playerLayer;
-	
+
 	private Widget mouseOwner;
 	private static BufferedImage
 		dropShadowBottomLeft  = ResourceLoader.getImage("dropshadow/inner_bottom_left.png"),
@@ -88,39 +89,40 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 				new TempleLayer(),
 				new SpawnLayer(),
 				new NetherFortressLayer(),
+				new MineshaftLayer(),
 				playerLayer = new PlayerLayer()
 			});
 	}
-	
+
 	private Project proj;
-	
+
 	private JPopupMenu menu = new JPopupMenu();
 	public int strongholdCount, villageCount;
-	
+
 	private Map worldMap;
 	private MapObject selectedObject = null;
 	private Point lastMouse;
 	public Point lastRightClick = null;
 	private Point2D.Double panSpeed;
-	
+
 	private static int zoomLevel = 0, zoomTicksRemaining = 0;
 	private static double targetZoom = 0.25f, curZoom = 0.25f;
 	private Point zoomMouse = new Point();
-	
+
 	private Font textFont = new Font("arial", Font.BOLD, 15);
-	
+
 	private FontMetrics textMetrics;
-	
+
 	private ArrayList<Widget> widgets = new ArrayList<Widget>();
 	private long lastTime;
-	
+
 	public void dispose() {
 		Log.debug("Disposing of map viewer.");
 		worldMap.dispose();
 		menu.removeAll();
 		proj = null;
 	}
-	
+
 	MapViewer(Project proj) {
 		panSpeed = new Point2D.Double();
 		this.proj = proj;
@@ -130,10 +132,10 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 				menu.add(new PlayerMenuItem(this, player, playerLayer));
 			}
 		}
-		
+
 		worldMap = new Map(fragmentManager); //TODO: implement more layers
 		worldMap.setZoom(curZoom);
-		
+
 		widgets.add(new FpsWidget(this).setAnchorPoint(CornerAnchorPoint.BOTTOM_LEFT));
 		widgets.add(new SeedWidget(this).setAnchorPoint(CornerAnchorPoint.TOP_LEFT));
 		widgets.add(new DebugWidget(this).setAnchorPoint(CornerAnchorPoint.BOTTOM_RIGHT));
@@ -143,7 +145,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 		widgets.add(BiomeWidget.get(this).setAnchorPoint(CornerAnchorPoint.NONE));
 		addMouseListener(this);
 		addMouseWheelListener(this);
-		
+
 		setFocusable(true);
 		lastTime = System.currentTimeMillis();
 
@@ -151,25 +153,25 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 	}
 
 	@Override
-	public void paint(Graphics g) {	 
+	public void paint(Graphics g) {
 		Graphics2D g2d = (Graphics2D)g.create();
-				
+
 		long currentTime = System.currentTimeMillis();
 		float time = Math.min(Math.max(0, currentTime - lastTime), 100) / 1000.0f;
 		lastTime = currentTime;
-		
+
 		g2d.setColor(Color.black);
 		g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
 
 		if (zoomTicksRemaining-- > 0) {
 			double lastZoom = curZoom;
 			curZoom = (targetZoom + curZoom) * 0.5;
-			
+
 			Point2D.Double targetZoom = worldMap.getScaled(lastZoom, curZoom, zoomMouse);
 			worldMap.moveBy(targetZoom);
 			worldMap.setZoom(curZoom);
 		}
-		
+
 		Point curMouse = getMousePosition();
 		if (lastMouse != null) {
 			if (curMouse != null) {
@@ -178,7 +180,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 				// TODO : Scale with time
 				panSpeed.setLocation(difX * 0.2, difY * 0.2);
 			}
-			
+
 			lastMouse.translate((int) panSpeed.x, (int)panSpeed.y);
 		}
 
@@ -190,17 +192,17 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 			panSpeed.x *= 0.f;
 			panSpeed.y *= 0.f;
 		}
-		
+
 		worldMap.width = getWidth();
 		worldMap.height = getHeight();
-		
+
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		worldMap.draw((Graphics2D)g2d.create(), time);
 		g2d.drawImage(dropShadowTopLeft,     0,               0,                null);
 		g2d.drawImage(dropShadowTopRight,    getWidth() - 10, 0,                null);
 		g2d.drawImage(dropShadowBottomLeft,  0,               getHeight() - 10, null);
 		g2d.drawImage(dropShadowBottomRight, getWidth() - 10, getHeight() - 10, null);
-		
+
 		g2d.drawImage(dropShadowTop,    10, 0, getWidth() - 20, 10,  null);
 		g2d.drawImage(dropShadowBottom, 10, getHeight() - 10, getWidth() - 20, 10,  null);
 		g2d.drawImage(dropShadowLeft,   0, 10, 10, getHeight() - 20, null);
@@ -214,12 +216,12 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 			}
 		}
 	}
-	
-	
+
+
 	public void centerAt(long x, long y) {
 		worldMap.centerOn(x, y);
 	}
-	
+
 	public void adjustZoom(Point position, int notches) {
 		zoomMouse = position;
 		if (notches > 0) {
@@ -236,7 +238,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 			}
 		}
 	}
-	
+
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		int notches = e.getWheelRotation();
@@ -268,7 +270,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 				}
 			}
 			MapObject object = worldMap.getObjectAt(mouse, 50.0);
-			
+
 			if (selectedObject != null)
 				selectedObject.localScale = 1.0;
 
@@ -277,8 +279,8 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 			selectedObject = object;
 		}
 	}
-	
-	
+
+
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
 	}
@@ -304,7 +306,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 		}
 		lastMouse = mouse;
 	}
-	
+
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (e.isPopupTrigger() && MinecraftUtil.getVersion().saveEnabled()) {
@@ -321,38 +323,38 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 			}
 		}
 	}
-	
+
 	public MapObject getSelectedObject() {
 		return selectedObject;
 	}
-	
-	
+
+
 	public void movePlayer(String name, ActionEvent e) {
 		//PixelInfo p = getCursorInformation(new Point(tempX, tempY));
-		
+
 		//proj.movePlayer(name, p);
 	}
-	
+
 	public void saveToFile(File f) {
 		BufferedImage image = new BufferedImage(worldMap.width, worldMap.height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = image.createGraphics();
-		
+
 		worldMap.draw(g2d, 0);
 
 		for (Widget widget : widgets)
 			if (widget.isVisible())
 				widget.draw(g2d, 0);
-		
+
 		try {
 			ImageIO.write(image, "png", f);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		g2d.dispose();
 		image.flush();
 	}
-	
+
 	@Override
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
@@ -368,13 +370,13 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 	@Override
 	public void keyReleased(KeyEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public FragmentManager getFragmentManager() {
@@ -384,7 +386,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 	public Map getMap() {
 		return worldMap;
 	}
-	
+
 	public FontMetrics getFontMetrics() {
 		return textMetrics;
 	}
