@@ -362,24 +362,29 @@ public class AmidstMenu extends JMenuBar {
 					KeyEvent.VK_3,
 					Options.instance.showVillages));
 
+				add(new DisplayingCheckbox("Ocean Monument Icons",
+					ResourceLoader.getImage("ocean_monument.png"),
+					KeyEvent.VK_4,
+					Options.instance.showOceanMonuments));
+
 				add(new DisplayingCheckbox("Temple/Witch Hut Icons",
 					ResourceLoader.getImage("desert.png"),
-					KeyEvent.VK_4,
+					KeyEvent.VK_5,
 					Options.instance.showTemples));
 
 				add(new DisplayingCheckbox("Stronghold Icons",
 					ResourceLoader.getImage("stronghold.png"),
-					KeyEvent.VK_5,
+					KeyEvent.VK_6,
 					Options.instance.showStrongholds));
 
 				add(new DisplayingCheckbox("Player Icons",
 					ResourceLoader.getImage("player.png"),
-					KeyEvent.VK_6,
+					KeyEvent.VK_7,
 					Options.instance.showPlayers));
 
 				add(new DisplayingCheckbox("Nether Fortress Icons",
 					ResourceLoader.getImage("nether_fortress.png"),
-					KeyEvent.VK_7,
+					KeyEvent.VK_8,
 					Options.instance.showNetherFortresses));
 
 				add(new DisplayingCheckbox("Mineshaft Icons",

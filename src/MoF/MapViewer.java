@@ -15,6 +15,7 @@ import amidst.map.layers.BiomeLayer;
 import amidst.map.layers.GridLayer;
 import amidst.map.layers.MineshaftLayer;
 import amidst.map.layers.NetherFortressLayer;
+import amidst.map.layers.OceanMonumentLayer;
 import amidst.map.layers.PlayerLayer;
 import amidst.map.layers.SlimeLayer;
 import amidst.map.layers.SpawnLayer;
@@ -151,6 +152,41 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 
 		textMetrics = getFontMetrics(textFont);
 	}
+
+	private FragmentManager createFragmentManager() {
+		
+		return new FragmentManager(
+			new ImageLayer[] {
+				new BiomeLayer(),
+				new SlimeLayer()
+			},
+			new LiveLayer[] {
+				new GridLayer()
+			},
+			new IconLayer[] {
+				new VillageLayer(),
+				new OceanMonumentLayer(),
+				new StrongholdLayer(),
+				new TempleLayer(),
+				new SpawnLayer(),
+				new NetherFortressLayer(),
+				
+				// Including BiomeIconLayers in the MapViewer is only useful for debug purposes,
+				// there's no need to display this data in the main window - the BiomeIconLayers 
+				// are for MapExporter.
+				// Plus you have to move the biome off screen then back onto the screen in order
+				// to remove the excess mapObjects created for each fragment before they were
+				// condensed into one.
+				//
+				// new BiomeIconLayer(MapMarkers.MUSHROOM_ISLAND),
+				// new BiomeIconLayer(MapMarkers.ICE_PLAINS_SPIKES),
+				// new BiomeIconLayer(MapMarkers.FLOWER_FOREST),
+				
+				playerLayer = new PlayerLayer()
+			}
+		);
+	}
+	
 
 	@Override
 	public void paint(Graphics g) {

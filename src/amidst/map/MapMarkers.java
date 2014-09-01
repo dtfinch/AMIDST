@@ -18,8 +18,12 @@ public enum MapMarkers {
 	VILLAGE,
 	SPAWN,
 	WITCH,
-	MINESHAFT;
-
+	MINESHAFT,
+	OCEAN_MONUMENT,
+	MUSHROOM_ISLAND,
+	ICE_PLAINS_SPIKES,
+	FLOWER_FOREST;
+	
 	public final BufferedImage image;
 
 	private MapMarkers() {
