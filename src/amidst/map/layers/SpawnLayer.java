@@ -44,7 +44,7 @@ public class SpawnLayer extends IconLayer {
 		}
 	}
 	
-	private Point getSpawnPosition() {
+	public Point getSpawnPosition() {
 		Random random = new Random(Options.instance.seed);
 		Point location = MinecraftUtil.findValidLocation(0, 0, 256, validBiomes, random);
 		int x = 0;

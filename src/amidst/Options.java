@@ -52,10 +52,18 @@ public enum Options {
 
 	@Option (name="-mcjson", usage="Sets the path to the minecraft .json", metaVar="<path>")
 	public String minecraftJson;
+	
+	@Option (name="-tryseeds", usage="Print stats on X random seeds and exit. Outputs to console unless -history given.")
+	public int trySeeds;
+
+	@Option (name="-sleeppct", usage="Throttle seed finder by percentage.")
+	public int sleepPct;
 
 	private Options() {
 		seed = 0L;
 		seedText = null;
+		trySeeds = 0;
+		sleepPct = 0;
 
 
 		Preferences pref = Preferences.userNodeForPackage(Amidst.class);

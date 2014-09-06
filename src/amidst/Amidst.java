@@ -59,7 +59,12 @@ public class Amidst {
 			try {
 				Util.setProfileDirectory(Options.instance.minecraftPath);
 				MinecraftUtil.setBiomeInterface(new Minecraft(new File(Options.instance.minecraftJar)).createInterface());
-				new FinderWindow();
+				
+				if(Options.instance.trySeeds>0) {
+					new SeedTester(); //seed-finding mode
+				} else {
+					new FinderWindow();
+				}
 			} catch (MalformedURLException e) {
 				Log.crash(e, "MalformedURLException on Minecraft load.");
 			}
