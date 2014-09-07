@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.awt.Point;
 
+import amidst.logging.Log;
 import amidst.Options;
 import amidst.map.layers.*;
 import amidst.minecraft.MinecraftUtil;
@@ -28,6 +29,7 @@ public class SeedTester {
     public long score;
     public Point spawn;
     
+    
     public int[] foundBiomes;
     public int[] biomeScores;
     
@@ -40,8 +42,18 @@ public class SeedTester {
     private OceanMonumentLayer monumentLayer;
     
     private PrintStream seedFile;
+    
+    private int numSkipped, numChecked, numQualified;
 
     public SeedTester() {
+        Log.isShowingDebug = false; //block extra messages from world generation and spawn finding
+        
+        if(Options.instance.pruneSeeds) {
+            Log.i("Will skip low quality seeds for better performance.");
+        } else {
+            Log.i("Will slowly examine all seeds. Use -pruneseeds to skip low quality seeds for performance.");
+        }
+    
         mineLayer = new MineshaftLayer();
         fortressLayer = new NetherFortressLayer();
         villageLayer = new VillageLayer();
@@ -68,12 +80,23 @@ public class SeedTester {
         
         seedFile.println("seed\tmines\tfortresses\tvillages\ttemples\tmonuments\tbiomes\tspecialBiomes\tbiomeScore\tspecialScore\tscore\tqualified");
     
+    
         Random rnd = new SecureRandom();
         int count = Options.instance.trySeeds;
-        while(count-- > 0) {
+        for(int i=0; i<count; i++) {
             testSeed(rnd.nextLong());
             
-            display();
+            if(qualified || score>0) {
+                numChecked++;
+                if(qualified) numQualified++;
+                display();
+                
+                if(Options.instance.pruneSeeds || (i%20)==0) {
+                    Log.i("Total: "+(numChecked+numSkipped)+"  Pruned: "+numSkipped+"  Checked: "+numChecked+"  Qualified: "+numQualified);
+                }
+            } else {
+                numSkipped++;
+            }
         }
         if(seedFile!=System.out) seedFile.close();
     }
@@ -105,9 +128,10 @@ public class SeedTester {
         foundBiomes = new int[256];
         biomeScores = new int[256];
         qualified = true;
+        score = 0;
     }
     
-    /* unused now
+    /* unused now, but maybe handy later
     private boolean hasAnyBiome(int[] types) {
         for(int i=0; i<types.length; i++) {
             int type = types[i];
@@ -118,7 +142,7 @@ public class SeedTester {
         return false;
     }*/
 
-    private void checkSpecialBiome(boolean require, int... types) {
+    private boolean checkSpecialBiome(int... types) {
         int bestScore=0;
         boolean found=false;
         for(int i=0; i<types.length; i++) {
@@ -134,24 +158,30 @@ public class SeedTester {
         if(found) {
             specialBiomes++;
             specialScore+=bestScore;
-        } else if(require) {
-            qualified = false;
+            return true;
         }
+        return false;
     }
     
-    public void testChunks(int midX, int midY, int range, int minRange, boolean refine) {
+    public void testChunks(int midX, int midY, int range, int minRange, int refine) {
         int limit = range*(range+1); //square of distance for circular range. lazy integer approximation of (range+0.5)**2
         int minLimit = minRange*(minRange+1);
         
-        for(int dy = -range; dy<=range; dy++) {
+        int step = 1;
+        if(refine==0) step=15; //1 in 225
+        else if(refine==1) step=7; //1 in 49
+        // refine 3: check structures on all chunks, but biomes on 1/8th
+        // refine 4: check no structures (already checked), but check other 7/8th of biomes
+        
+        for(int dy = -range; dy<=range; dy+=step) {
             int y = dy+midY;
-            for(int dx = -range; dx<=range; dx++) {
+            for(int dx = -range; dx<=range; dx+=step) { //todo stagger by half of step
                 int sqDist = dx*dx+dy*dy;
                 if(sqDist>limit || sqDist<minLimit) continue; //range is circular, donut
                 
                 int x = dx+midX;
                 
-                if(!refine) { //don't recount on refine pass
+                if(refine==2) { //only count on refine pass
                 
                     // TODO we probably don't need to count mines and fortresses, since density is pretty uniform.
                 
@@ -175,20 +205,16 @@ public class SeedTester {
                     //TODO use structure distance in score
                 }
                 
-                int spacing;
-                boolean checkBiome;
+                boolean check;
+                if(refine<2) {
+                    check=true;
+                } else {
+                    check = (x&1)==0 && ((x+y)&3)==0; //1/8th in a staggered grid pattern
+                    if(refine==3) check = !check; //the remaining 7/8ths
+                }
+                
+                if(check) {
 
-                checkBiome = (y&1)==0 && ((x+y)&3)==0; //check 1/8th of chunks. diagonal grid pattern.
-                /*
-                #   #   #
-                
-                  #   #   #
-                  
-                */
-                
-                if(refine) checkBiome = !checkBiome; //if refining (qualified seeds) check all the chunks that weren't examined on the first pass
-                
-                if(checkBiome) { 
                     //getBiomeData seems to have a 4x4 resolution, even though anvil files store the full resolution.
                     int biome = MinecraftUtil.getBiomeData(x*4+2, y*4+2, 1, 1)[0]; // *4 because 16/4==4. +2 to get center sample (probably doesn't matter)
      
@@ -202,34 +228,60 @@ public class SeedTester {
                     if(score>biomeScores[biome]) biomeScores[biome]=score;
                 }
             }
-            if(dy%10==0) {
+            if(refine>=2 && dy%10==0) {
                 doSleep();
             }
         }
     }
+    
+    private void checkRequiredBiomes() {
+        specialBiomes = specialScore = 0; //reset because this may be called multiple times, before the non-required ones are checked
+        checkSpecialBiome(14, 15); //mushroom, for mycelium
+        checkSpecialBiome(21, 22, 23); //jungle, for cookies and cats
+        checkSpecialBiome(32, 33); //mega taiga, for podzol
+        checkSpecialBiome(37, 38, 39); //mesa, for colored sand
+    }
 
     public void runTest(int midX, int midY, int range, int minRange) {
-        testChunks(midX, midY, range, minRange, false);
+        if(Options.instance.pruneSeeds) {
+            qualified = false;
+            
+            // fastest test, requiring 2 of 4 biomes
+            testChunks(midX, midY, range, minRange, 0); 
+            checkRequiredBiomes(); //updates specialBiomes count
+            if(specialBiomes<2) return;
+            
+            // a little slower, requiring 3 of 4 to proceed
+            testChunks(midX, midY, range, minRange, 1);
+            checkRequiredBiomes();
+            if(specialBiomes<3) return;   
+        }
         
-        checkSpecialBiome(true, 14, 15); //mushroom, for mycelium
-        checkSpecialBiome(true, 21, 22, 23); //jungle, for cookies and cats
-        checkSpecialBiome(true, 32, 33); //mega taiga, for podzol
-        checkSpecialBiome(true, 37, 38, 39); //mesa, for colored sand
+        //normal scan. check structures in all chunks, but biomes in only 1/8 of chunks.
+        testChunks(midX, midY, range, minRange, 2);
         
-        //if any of the above don't match, checkSpecialBiome sets qualified=false
+        checkRequiredBiomes();
         
-        // With range=125, about 1 in 550 qualify by containing the above 4 biome types
-        if(qualified) testChunks(midX, midY, range, minRange, true); //expensive
+        qualified = (specialBiomes>=4);
+        
+        if(qualified) {
+            //refine further for more precise biome stats
+            testChunks(midX, midY, range, minRange, 3); //expensive biome test, checking all chunks
+
+            checkRequiredBiomes();
+        
+        }
+      
         
         //the following biomes are nice to have, but don't disqualify a seed
         
-        checkSpecialBiome(false, 6); //swampland, for lily pads
-        checkSpecialBiome(false, 132); //flower forest, for dyes
-        checkSpecialBiome(false, 140); //ice spikes, for packed ice
-        checkSpecialBiome(false, 35, 36); //savanna, for diagonal trees and (also on plains) horses
+        checkSpecialBiome(6); //swampland, for lily pads
+        checkSpecialBiome(132); //flower forest, for dyes
+        checkSpecialBiome(140); //ice spikes, for packed ice
+        checkSpecialBiome(35, 36); //savanna, for diagonal trees and (also on plains) horses
 
-        checkSpecialBiome(false, 24); //deep ocean, for possible ocean monument
-        checkSpecialBiome(false, 2, 17); //desert, for cactus
+        checkSpecialBiome(24); //deep ocean, for possible ocean monument
+        checkSpecialBiome(2, 17); //desert, for cactus
         
         // of seeds that "qualify", about 1 in 12 contain all the above biomes as well.
         

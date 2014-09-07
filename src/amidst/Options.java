@@ -59,12 +59,16 @@ public enum Options {
 
 	@Option (name="-sleeppct", usage="Throttle seed finder by percentage.")
 	public int sleepPct;
+	
+	@Option (name="-pruneseeds", usage="Skip low quality seeds for better performance.")
+	public boolean pruneSeeds;
 
 	private Options() {
 		seed = 0L;
 		seedText = null;
 		trySeeds = 0;
 		sleepPct = 0;
+		pruneSeeds = false;
 
 
 		Preferences pref = Preferences.userNodeForPackage(Amidst.class);
