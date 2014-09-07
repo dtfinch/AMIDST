@@ -86,6 +86,7 @@ public class MapViewer extends JComponent implements MouseListener, MouseWheelLi
 			},
 			new IconLayer[] {
 				new VillageLayer(),
+				new OceanMonumentLayer(),
 				new StrongholdLayer(),
 				new TempleLayer(),
 				new SpawnLayer(),

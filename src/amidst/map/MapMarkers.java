@@ -19,10 +19,7 @@ public enum MapMarkers {
 	SPAWN,
 	WITCH,
 	MINESHAFT,
-	OCEAN_MONUMENT,
-	MUSHROOM_ISLAND,
-	ICE_PLAINS_SPIKES,
-	FLOWER_FOREST;
+	OCEAN_MONUMENT;
 	
 	public final BufferedImage image;
 
