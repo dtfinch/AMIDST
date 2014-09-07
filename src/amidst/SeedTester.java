@@ -19,6 +19,7 @@ public class SeedTester {
     public int fortresses;
     public int villages;
     public int temples;
+    public int monuments;
     public int biomes;
     public int biomeScore;
     public int specialBiomes; //those with unique resources
@@ -36,6 +37,7 @@ public class SeedTester {
     private VillageLayer villageLayer;
     private TempleLayer templeLayer;
     private SpawnLayer spawnLayer;
+    private OceanMonumentLayer monumentLayer;
     
     private PrintStream seedFile;
 
@@ -45,6 +47,7 @@ public class SeedTester {
         villageLayer = new VillageLayer();
         templeLayer = new TempleLayer();
         spawnLayer = new SpawnLayer();
+        monumentLayer = new OceanMonumentLayer();
         
         //TODO support supplying a list of seeds to retest (like a text file of seed per line, ignoring stuff after tabs)
         //TODO output detailed information on "qualified" seeds (like per-biome distances) to support future querying
@@ -63,7 +66,7 @@ public class SeedTester {
             seedFile = System.out;
         }
         
-        seedFile.println("seed\tmines\tfortresses\tvillages\ttemples\tbiomes\tspecialBiomes\tbiomeScore\tspecialScore\tscore\tqualified");
+        seedFile.println("seed\tmines\tfortresses\tvillages\ttemples\tmonuments\tbiomes\tspecialBiomes\tbiomeScore\tspecialScore\tscore\tqualified");
     
         Random rnd = new SecureRandom();
         int count = Options.instance.trySeeds;
@@ -94,6 +97,7 @@ public class SeedTester {
         fortresses = 0;
         villages = 0;
         temples = 0;
+        monuments = 0;
         biomes = 0;
         specialBiomes = 0;
         biomeScore = 0;
@@ -165,6 +169,9 @@ public class SeedTester {
                         //TODO distinguish witchhuts from temples
                         temples++;
                     }
+                    if(monumentLayer.checkChunk(x, y)) {
+                        monuments++;
+                    }
                     //TODO use structure distance in score
                 }
                 
@@ -234,6 +241,7 @@ public class SeedTester {
             +fortresses
             +10*villages
             +5*temples
+            +7*monuments // increase when more reliable
             +5*biomes
             +20*specialBiomes
             +specialScore/5
@@ -251,6 +259,7 @@ public class SeedTester {
             +"\t"+fortresses
             +"\t"+villages
             +"\t"+temples
+            +"\t"+monuments // overestimated at the moment
             +"\t"+biomes
             +"\t"+specialBiomes
             +"\t"+biomeScore
