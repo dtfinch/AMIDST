@@ -63,12 +63,20 @@ public enum Options {
 	@Option (name="-pruneseeds", usage="Skip low quality seeds for better performance.")
 	public boolean pruneSeeds;
 
+	@Option (name="-radius", usage="Chunk radius of seed finder. Default 125.")
+	public int radius;
+	
+	@Option (name="-retest", usage="Seed file to retest.")
+	public String retest;
+
 	private Options() {
 		seed = 0L;
 		seedText = null;
 		trySeeds = 0;
 		sleepPct = 0;
 		pruneSeeds = false;
+		retest = null;
+		radius = 125;
 
 
 		Preferences pref = Preferences.userNodeForPackage(Amidst.class);

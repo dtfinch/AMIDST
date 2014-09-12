@@ -60,7 +60,7 @@ public class Amidst {
 				Util.setProfileDirectory(Options.instance.minecraftPath);
 				MinecraftUtil.setBiomeInterface(new Minecraft(new File(Options.instance.minecraftJar)).createInterface());
 				
-				if(Options.instance.trySeeds>0) {
+				if(Options.instance.trySeeds>0 || Options.instance.retest!=null) {
 					new SeedTester(); //seed-finding mode
 				} else {
 					new FinderWindow();

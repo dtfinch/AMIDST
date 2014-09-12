@@ -4,9 +4,14 @@ package amidst;
 import java.util.Random;
 import java.security.SecureRandom;
 import java.lang.Math;
+import java.lang.NumberFormatException;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.FileReader;
+import java.io.BufferedReader;
+
 import java.awt.Point;
 
 import amidst.logging.Log;
@@ -63,7 +68,7 @@ public class SeedTester {
         
         //TODO support supplying a list of seeds to retest (like a text file of seed per line, ignoring stuff after tabs)
         //TODO output detailed information on "qualified" seeds (like per-biome distances) to support future querying
-        
+        //TODO square radius option
         
         String path = Options.instance.historyPath;
         if(path!=null && !path.isEmpty()) {
@@ -80,26 +85,49 @@ public class SeedTester {
         
         seedFile.println("seed\tmines\tfortresses\tvillages\ttemples\tmonuments\tbiomes\tspecialBiomes\tbiomeScore\tspecialScore\tscore\tqualified");
     
-    
-        Random rnd = new SecureRandom();
-        int count = Options.instance.trySeeds;
-        for(int i=0; i<count; i++) {
-            testSeed(rnd.nextLong());
-            
-            if(qualified || score>0) {
-                numChecked++;
-                if(qualified) numQualified++;
-                display();
-                
-                if(Options.instance.pruneSeeds || (i%20)==0) {
-                    Log.i("Total: "+(numChecked+numSkipped)+"  Pruned: "+numSkipped+"  Checked: "+numChecked+"  Qualified: "+numQualified);
-                }
-            } else {
-                numSkipped++;
+        String retest = Options.instance.retest;
+        if(retest!=null) {
+            Log.i("Retesting seeds from "+retest);
+            BufferedReader reader;
+            try {
+                reader = new BufferedReader(new FileReader(retest));
+            } catch(FileNotFoundException e) { 
+                System.err.println("Could not open "+retest+".\n"+e.toString());
+                return;
             }
+            try {
+                String line;
+                while((line=reader.readLine())!=null) {
+                    int x = line.indexOf('\t');
+                    if(x<0) x=line.getLength();
+                    long seed;
+                    try {
+                        seed = Long.parseLong(line.substring(0,x));
+                    } catch(NumberFormatException e) {
+                        continue;
+                    }
+                    testSeed(seed);
+                }
+                reader.close();
+            } catch(IOException e) {
+                System.err.println("IO Exception.\n"+e.toString());
+                return;
+            }
+        } else {
+            Random rnd = new SecureRandom();
+            int count = Options.instance.trySeeds;
+            Log.i("Testing "+count+" random seeds.");
+            for(int i=0; i<count; i++) {
+                testSeed(rnd.nextLong());
+            }
+        
         }
+
+        
+        
         if(seedFile!=System.out) seedFile.close();
     }
+    
     
     public void testSeed(long seed) {
         doSleep();
@@ -111,7 +139,20 @@ public class SeedTester {
         
         spawn = spawnLayer.getSpawnPosition(); //occasionally fails and returns 0,0. Don't know what minecraft itself does in these situations.
         
-        runTest(spawn.x/16, spawn.y/16, 125, 0);
+        runTest(spawn.x/16, spawn.y/16, Options.instance.radius, 0);
+        
+        
+        if(qualified || score>0) {
+            numChecked++;
+            if(qualified) numQualified++;
+            display();
+            
+            if(Options.instance.pruneSeeds || (numChecked%20)==0) {
+                Log.i("Total: "+(numChecked+numSkipped)+"  Pruned: "+numSkipped+"  Checked: "+numChecked+"  Qualified: "+numQualified);
+            }
+        } else {
+            numSkipped++;
+        }
     }
 
 
