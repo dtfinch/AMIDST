@@ -99,7 +99,7 @@ public class SeedTester {
                 String line;
                 while((line=reader.readLine())!=null) {
                     int x = line.indexOf('\t');
-                    if(x<0) x=line.getLength();
+                    if(x<0) x=line.length();
                     long seed;
                     try {
                         seed = Long.parseLong(line.substring(0,x));
