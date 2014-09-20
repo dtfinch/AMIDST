@@ -18,6 +18,7 @@ import amidst.logging.Log;
 import amidst.Options;
 import amidst.map.layers.*;
 import amidst.minecraft.MinecraftUtil;
+import amidst.minecraft.Biome;
 
 
 public class SeedTester {
@@ -33,6 +34,8 @@ public class SeedTester {
     public boolean qualified; //has all the rarest biomes
     public long score;
     public Point spawn;
+    public int spawnBiome;
+    public int originBiome;
     
     
     public int[] foundBiomes;
@@ -83,7 +86,7 @@ public class SeedTester {
             seedFile = System.out;
         }
         
-        seedFile.println("seed\tmines\tfortresses\tvillages\ttemples\tmonuments\tbiomes\tspecialBiomes\tbiomeScore\tspecialScore\tscore\tqualified");
+        seedFile.println("seed\tmines\tfortresses\tvillages\ttemples\tmonuments\tbiomes\tspecialBiomes\tbiomeScore\tspecialScore\tscore\tqualified\tspawn\tcenter");
     
         String retest = Options.instance.retest;
         if(retest!=null) {
@@ -128,6 +131,13 @@ public class SeedTester {
         if(seedFile!=System.out) seedFile.close();
     }
     
+    private String biomeName(int index) {
+        if(index>=0 && index<Biome.biomes.length) {
+            Biome biome = Biome.biomes[index];
+            if(biome!=null) return biome.name;
+        }
+        return "Unknown";
+    }
     
     public void testSeed(long seed) {
         doSleep();
@@ -170,6 +180,7 @@ public class SeedTester {
         biomeScores = new int[256];
         qualified = true;
         score = 0;
+        spawnBiome = originBiome = -1;
     }
     
     /* unused now, but maybe handy later
@@ -250,7 +261,7 @@ public class SeedTester {
                 if(refine<2) {
                     check=true;
                 } else {
-                    check = (x&1)==0 && ((x+y)&3)==0; //1/8th in a staggered grid pattern
+                    check = ((x&1)==0 && ((x+y)&3)==0) || (dx==0&&dy==0); //1/8th in a staggered grid pattern, while ensuring both the spawn and the map center are checked
                     if(refine==3) check = !check; //the remaining 7/8ths
                 }
                 
@@ -267,6 +278,9 @@ public class SeedTester {
                     int dist = (int)Math.round(Math.sqrt(sqDist));
                     int score = range+1-dist;
                     if(score>biomeScores[biome]) biomeScores[biome]=score;
+                    
+                    if(dx==0 && dy==0) spawnBiome = biome;
+                    if(x==0 && y==0) originBiome = biome;
                 }
             }
             if(refine>=2 && dy%10==0) {
@@ -334,7 +348,8 @@ public class SeedTester {
             +fortresses
             +10*villages
             +5*temples
-            +7*monuments // increase when more reliable
+            +10*monuments
+            +10*Math.min(Math.min(villages,temples),monuments) //reward variety
             +5*biomes
             +20*specialBiomes
             +specialScore/5
@@ -359,6 +374,8 @@ public class SeedTester {
             +"\t"+specialScore
             +"\t"+score
             +"\t"+qualified
+            +"\t"+biomeName(spawnBiome)
+            +"\t"+biomeName(originBiome)
         );
         
     }
