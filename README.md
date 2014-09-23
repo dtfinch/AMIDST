@@ -3,6 +3,10 @@ AMIDST
 
 Advanced Minecraft Interface and Data/Structure Tracking
 
+This fork adds a command-line seed finder, and imports ocean monument support.
+
+Compile the project with Eclipse, or by running "ant" from the command line in the project root. Requires the Java JDK and Ant (or Eclipse).
+
 License and warranty
 --------------------
 
